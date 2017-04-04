@@ -1,0 +1,337 @@
+<script src="https://d3js.org/d3.v3.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.1.1.js" integrity="sha256-16cdPddA6VdVInumRGo6IbivbERE8p7CQR3HzTBuELA="   crossorigin="anonymous"></script>
+
+
+<style>
+    p {margin-top:100px;}
+    #Experiments {
+    position: absolute;
+    top:400px;
+    left:400px;
+    }
+
+    #End{
+    position: absolute;
+    top: 200px;
+    left: 600px;
+    }
+
+    input {margin-right:10px;}
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+    }
+
+</style>
+
+<body>
+<p style="text-align:center">In this experiment, you are asked to judge<br>what is the percent of a smaller value to a
+    larger value in several charts.
+    <br><br>We won't record any other information from you except your answers.<br>Click the "I agree" button to begin.
+    <br><br><br><br>Thank you!<br><br><br><br>
+    <input id='start' type="button" value="I agree">
+</p>
+
+</body>
+
+<script>
+
+$(document).ready(function() {
+
+  $('#start').on('click', function(){
+       startExperiment();
+  })
+
+
+  $(document).on('click', "#next", function(event){
+		event.preventDefault();
+
+		if (currentState > 6){
+			$.ajax({
+				method: "POST",
+				url: 'https://nzholmes.fwd.wf/store_data',
+				dataType: "json",
+				contentType: 'application/json;charset=UTF-8',
+                data: JSON.stringify(report) //{report: }
+			}).done(function (data) {
+				console.log('success');
+				console.log(data);
+			});
+		}
+   });
+});
+
+
+  var currentState=0,
+      participantID="participant"+Math.floor(Math.random()*5000),
+      report=[],
+      difference,
+      reportedDiff,
+      chartType;
+
+  var latinSquare=[
+
+        [5, 1, 0, 2, 3, 4],
+	    [4, 2, 1, 5, 0, 3],
+		[3, 0, 2, 4, 5, 1],
+		[0, 3, 4, 1, 2, 5],
+		[1, 5, 3, 0, 4, 2],
+		[2, 4, 5, 3, 1, 0]
+  ];
+
+  var orderToChart={
+	0 : 'BubbleChart',
+	3 : 'BubbleChart',
+	1 : 'Bar',
+	4 : 'Bar',
+	2 : 'StackedBar',
+	5 : 'StackedBar'
+  };
+
+  var selection=latinSquare[Math.floor(Math.random()*6)];
+
+  var width=960,
+      height=500
+      marginLeft=350,
+      marginBottom=-50,
+      axis=[
+            {"x1": width/100, "y1": height, "x2": width-100, "y2": height},
+            {"x1": width/100, "y1": height, "x2": width/100, "y2": height-700}
+           ];
+
+  var svg=d3.select("body").append("svg");
+
+
+  function startExperiment(){
+
+      d3.selectAll("p").remove();
+
+      d3.select("body").append("p")
+        .attr("id", "Experiments")
+        .style("text-align", "center")
+        .html("Two values are marked with dots."+"<br>"+"What do you think the percent of the smaller value to the larger value?"
+             +"<br>"+"Please put your answer below."+"<br>"
+             +"e.g.If you think the smaller one is exactly a half of the bigger one, please input 50."
+             +"<br><br>");
+
+      d3.select("p").append("input")
+        .attr("id", "inputValue")
+        .attr("type", "number")
+        .attr("placeholder", "Enter value here")
+
+      d3.select("p").append("input")
+        .attr('id', "next")
+        .attr("type", "submit")
+        .attr("value", "NEXT")
+        .attr("onclick", "updateCharts()");
+
+      generateCharts();
+  }
+
+  function generateCharts(){
+
+        svg.selectAll("*").remove();
+
+        svg.attr("width", width)
+             .attr("height", height);
+
+        if (currentState<=5) {
+              document.getElementById("inputValue").value="";
+              var chartNum=selection[currentState];
+              [bubbles, bars, stackedBars, bubbles, bars, stackedBars][chartNum]();
+              //[bubbles, bars, stackedBars][currentState]();
+              //currentState++;
+          } else {
+              svg.selectAll("*").remove();
+              d3.selectAll("input").remove();
+              d3.select("p")
+                .attr("id", "End")
+                .style("font-size", "30px")
+                .text("Thanks!")
+          };
+          currentState++;
+  }
+
+  function updateCharts(){
+
+      var value=d3.select("#inputValue").property("value");
+
+      if (currentState>0){
+          if (value.length===0 || Number(value)<0 || Number(value)>100){
+             alert("Empty value is not allowed and the value must be from 0 to 100.");
+          } else {
+             var reportedDiff=Number(value);
+             report.push({'participantID': participantID,
+                          'chartType': chartType,
+                          'realValue': Math.round(difference*100),
+                          'reportedValue': reportedDiff});
+             generateCharts();
+          }
+      }
+  }
+
+  function randomNumber(){
+      var randomNumber1=Math.floor(Math.random()*10),
+          randomNumber2=Math.floor(Math.random()*10);
+
+      while (Math.abs(randomNumber1-randomNumber2)<=1){
+          randomNumber2=Math.floor(Math.random()*10);
+      }
+
+      return [randomNumber1, randomNumber2];
+  }
+
+  function bars(){
+
+     chartType="Bar";
+
+     yValue=d3.range(10).map(function(){return Math.random()*(height-200)+40});
+
+     g=svg.append("g")
+        .attr("class", "rectangular")
+        .attr("transform", "translate("+marginLeft+","+marginBottom+")");
+
+     g.selectAll("rect")
+        .data(yValue)
+        .enter().append("rect")
+        .attr("x", function(d, i){return 50+i*50})
+        .attr("y", function(d){return height-d})
+        .attr("width", 25)
+        .attr("height", function(d){return d})
+        .attr("fill", "white")
+        .attr("stroke", "black");
+
+     randomPosition=randomNumber();
+     g.selectAll("circle")
+        .data(randomPosition)
+        .enter().append("circle")
+        .attr("cx", function(d){return 62.5+d*50})
+        .attr("cy", function(d){return 500-yValue[d]/2})
+        .attr("r", 3);
+
+     compare=randomPosition.map(function(d){return yValue[d]});
+     difference=d3.min(compare)/d3.max(compare);
+
+     // axis line
+     g.selectAll("line")
+        .data(axis)
+        .enter().append("line")
+        .attr("x1", function(d){return d["x1"]})
+        .attr("y1", function(d){return d["y1"]})
+        .attr("x2", function(d){return d["x2"]})
+        .attr("y2", function(d){return d["y2"]})
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+  }
+
+
+  function stackedBars(){
+
+     chartType="StackedBar";
+
+     yValue=d3.range(10).map(function(){return [{"x":(width-marginLeft)/2, "y": Math.random()*100+20}];});
+
+     var layers=d3.layout.stack()(yValue);
+     //console.log(layers);
+
+     yStackMax=d3.max(layers, function(layer){return d3.max(layer, function(d){return d.y0+d.y})});
+
+     y=d3.scale.linear()
+      .domain([0, yStackMax+150])
+      .range([height, 0]);
+
+     var g=svg.append("g")
+          .attr("class", "rectangular")
+          .attr("transform", "translate("+marginLeft+","+marginBottom+")");
+
+     var layer=g.selectAll(".layer")
+            .data(layers)
+            .enter().append("g")
+            .attr("class", "layer");
+
+     layer.selectAll("rect")
+        .data(function(d){return d})
+        .enter().append("rect")
+        .attr("x", function(d){return d.x})
+        .attr("y", function(d){return y(d.y+d.y0)}) //y(d.y0)
+        .attr("width", 50)
+        .attr("height", function(d){return y(d.y0)-y(d.y0+d.y)}) //y(d.y)
+        .attr("fill", "white")
+        .attr("stroke", "black");
+
+     randomPosition=randomNumber();
+     g.selectAll("circle")
+        .data(randomPosition)
+        .enter().append("circle")
+        .attr("cx", (width-marginLeft)/2+25)
+        .attr("cy", function(d){var stack_y=layers[d][0]["y"],
+                                    stack_y0=layers[d][0]["y0"],
+                                    edge_point=y(stack_y+stack_y0),
+                                    stack_height=y(stack_y0)-y(stack_y0+stack_y);
+                                return edge_point+stack_height/2})   //console.log(layers[d][0].y)
+        .attr("r", 3);
+
+     compare=randomPosition.map(function(d){var stack_y=layers[d][0]["y"],
+                                                stack_y0=layers[d][0]["y0"];
+                                    return y(stack_y0)-y(stack_y0+stack_y)});
+     difference=d3.min(compare)/d3.max(compare);
+
+     // axis line
+     g.selectAll("line")
+        .data(axis)
+        .enter().append("line")
+        .attr("x1", function(d){return d["x1"]})
+        .attr("y1", function(d){return d["y1"]})
+        .attr("x2", function(d){return d["x2"]})
+        .attr("y2", function(d){return d["y2"]})
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+  }
+
+  function bubbles(){
+
+     chartType="BubbleChart";
+
+     randomValue=d3.range(10).map(function(){return [Math.random()*(height-200)+40,
+                                                Math.random()*20+10]});
+
+     g=svg.append("g")
+        .attr("class", "circle")
+        .attr("transform", "translate("+marginLeft+","+marginBottom+")");
+
+     g.selectAll("circle")
+        .data(randomValue)
+        .enter().append("circle")
+        .attr("cx", function(d, i){return 60+i*50})
+        .attr("cy", function(d){return height-d[0]})
+        .attr("r", function(d){return d[1]})
+        .attr("fill", "white")
+        .attr("stroke", "black");
+
+     randomPosition=randomNumber();
+     g.selectAll("ellipse")
+        .data(randomPosition)
+        .enter().append("ellipse")
+        .attr("cx", function(d){return 60+d*50})
+        .attr("cy", function(d){return height-randomValue[d][0]})
+        .attr("rx", 3)
+        .attr("ry", 3);
+
+     compare=randomPosition.map(function(d){return Math.PI*Math.pow(randomValue[d][1],2)});
+     difference=d3.min(compare)/d3.max(compare);
+
+     // axis line
+     g.selectAll("line")
+        .data(axis)
+        .enter().append("line")
+        .attr("x1", function(d){return d["x1"]})
+        .attr("y1", function(d){return d["y1"]})
+        .attr("x2", function(d){return d["x2"]})
+        .attr("y2", function(d){return d["y2"]})
+        .attr("stroke", "black")
+        .attr("stroke-width", 1);
+  }
+
+</script>

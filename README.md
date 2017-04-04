@@ -1,4 +1,4 @@
-Assignment 4 - Replicating a Classic Experiment  
+##Replicating a Classic Experiment  
 
 ## Team
 - Zheng Nie (nzholmes)
@@ -15,15 +15,15 @@ To convey same piece of information, there are various types of data visualizati
  
 - **Example of the bar chart with two randomly marked bars**
 
- ![Bar Chart](img/Bar chart.png)
+ ![Bar Chart](img/bar-chart.png)
  
 - **Example of the stacked bar chart with two randomly marked layers**
 
- ![Stacked Bar Chart](img/Stacked bar chart.png)
+ ![Stacked Bar Chart](img/stacked-bar-chart.png)
  
 - **Example of the bubble chart with two randomly marked bubbles**
 
- ![Bubble Chart](img/Bubble chart.png)
+ ![Bubble Chart](img/bubble-chart.png)
  
 - **Collected data and distributions of error for three charts**
 
@@ -34,16 +34,16 @@ To convey same piece of information, there are various types of data visualizati
  ![Collected data](img/Data.png)
  
  * __The distribution of error for all charts__
- ![The distribution of error for all charts](img/The distribution of error for all charts.png)
+ ![The distribution of error for all charts](img/The-distribution-of-error-for-all-charts.png)
  
  * __The distribution of error for bar chart__
- ![The distribution of error for bar chart](img/The distribution of error for bar chart.png)
+ ![The distribution of error for bar chart](img/The-distribution-of-error-for-bar-chart.png)
  
  * __The distribution of error for stacked bar chart__
- ![The distribution of error for stacked bar chart](img/The distribution of error for stacked bar chart.png)
+ ![The distribution of error for stacked bar chart](img/The-distribution-of-error-for-stacked-bar-chart.png)
  
  * __The distribution of error for bubble chart__
- ![The distribution of error for bubble chart](img/The distribution of error for bubble chart.png)
+ ![The distribution of error for bubble chart](img/The-distribution-of-error-for-bubble-chart.png)
  
 - **Analyses**
 
@@ -51,7 +51,7 @@ To convey same piece of information, there are various types of data visualizati
 
  ![Analyses of statistics](img/Analyses.png)
  
- ![Error Bar](img/Error bar.png)
+ ![Error Bar](img/error-bar.png)
 
 - **Conclusion**
 
